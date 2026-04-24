@@ -1,0 +1,118 @@
+﻿<div class="page" [class.dark]="theme === 'dark'">
+  <aside class="notes-sidebar">
+    <div class="sidebar-head">
+      <h2>Mes notes</h2>
+      <button type="button" (click)="createNote()">+ Nouvelle</button>
+    </div>
+
+    <div class="notes-list">
+      @for (note of sortedNotes; track note.id) {
+        <article class="note-card" [class.active]="note.id === selectedNoteId">
+          <button type="button" class="open-note" (click)="selectNote(note.id)">
+            <strong>{{ note.title || 'Sans titre' }}</strong>
+            <span>{{ notePreview(note.content) }}</span>
+          </button>
+          <button
+            type="button"
+            class="delete-note"
+            (click)="deleteNote(note.id)"
+            [disabled]="notes.length <= 1"
+            title="Supprimer"
+          >
+            x
+          </button>
+        </article>
+      }
+    </div>
+  </aside>
+
+  <main class="editor-panel">
+    <header class="header">
+      <input
+        class="title-input"
+        type="text"
+        [value]="noteTitle"
+        (input)="onTitleChange(titleInput.value)"
+        #titleInput
+        aria-label="Titre de la note"
+      />
+
+      <div class="header-actions">
+        <button type="button" (click)="toggleTheme()">
+          {{ theme === 'dark' ? 'Mode clair' : 'Mode sombre' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="toolbar" role="toolbar" aria-label="Formatage du texte">
+      <button type="button" (click)="applyCommand('undo')">Undo</button>
+      <button type="button" (click)="applyCommand('redo')">Redo</button>
+      <button type="button" (click)="applyCommand('bold')"><b>G</b></button>
+      <button type="button" (click)="applyCommand('italic')"><i>I</i></button>
+      <button type="button" (click)="applyCommand('underline')"><u>S</u></button>
+      <button type="button" (click)="clearFormatting()">Clear</button>
+
+      <button type="button" (click)="applyCommand('justifyLeft')">Gauche</button>
+      <button type="button" (click)="applyCommand('justifyCenter')">Centre</button>
+      <button type="button" (click)="applyCommand('justifyRight')">Droite</button>
+
+      <button type="button" (click)="applyCommand('insertUnorderedList')">Puces</button>
+      <button type="button" (click)="applyCommand('insertOrderedList')">Numeros</button>
+
+      <label>
+        Couleur
+        <input #colorPicker type="color" value="#1f2937" (input)="setTextColor(colorPicker.value)" />
+      </label>
+
+      <label>
+        Police
+        <select #fontPicker (change)="setFontFamily(fontPicker.value)">
+          <option value="Arial">Arial</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Verdana">Verdana</option>
+        </select>
+      </label>
+
+      <label>
+        Taille
+        <select #sizePicker (change)="changeFontSize(sizePicker.value)">
+          <option value="14px">14</option>
+          <option value="16px" selected>16</option>
+          <option value="18px">18</option>
+          <option value="22px">22</option>
+          <option value="28px">28</option>
+        </select>
+      </label>
+
+      <button type="button" (click)="triggerImagePicker()">Image</button>
+      <button type="button" (click)="duplicateSelection()">Dupliquer</button>
+    </div>
+
+    <div class="toolbar secondary">
+      <button type="button" (click)="exportAsHtml()">Export HTML</button>
+      <button type="button" (click)="exportAsText()">Export TXT</button>
+      <button type="button" (click)="exportAsPdf()">Export PDF</button>
+      <button type="button" (click)="triggerImport()">Importer TXT</button>
+
+      <span class="meta">Mots: {{ wordCount }}</span>
+      <span class="meta">Caracteres: {{ charCount }}</span>
+      @if (lastSavedAt) {
+        <span class="meta">Sauvegarde: {{ lastSavedAt }}</span>
+      }
+    </div>
+
+    <input #imageInput type="file" accept="image/*" (change)="insertImage($event)" hidden />
+    <input #importInput type="file" accept=".txt,text/plain" (change)="importTextFile($event)" hidden />
+
+    <div
+      #editor
+      class="editor"
+      contenteditable="true"
+      (input)="onEditorInput()"
+      (mouseup)="saveSelection()"
+      (keyup)="saveSelection()"
+    ></div>
+  </main>
+</div>
